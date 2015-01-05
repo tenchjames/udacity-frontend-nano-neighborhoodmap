@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="James Tench">
+    <meta name="description" content="a neighborhood map that uses apis, and mvvm mvc pattern">
+    <style type="text/css">
+        html, body, #map { height: 100%; margin: 0; padding: 0;}
+        .yelpReviews {
+            background-color: white;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAw-3oUotr4KA1XZQ5xiu_mjh21rNooo9Q"></script>
+    <title>Neighborhood Map</title>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="yelpReviews" class="yelpReviews">
+        <ul data-bind="foreach: allLocations">
+            <li data-bind="text: $data.locationName"></li>
+        </ul>
+
+    </div>
+
+    <script src="js/lib/knockout-latest.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
