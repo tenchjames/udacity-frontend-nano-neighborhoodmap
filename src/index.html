@@ -65,18 +65,11 @@
     <div id="locationListContainer" class="locationListContainer">
         <h3>Locations I visited on my trip to Nashville</h3>
         <ul data-bind="foreach: allLocations" class="locationList">
-            <li data-bind="text: $data.locationName" class="locationListItem"></li>
+            <li data-bind="text: $data.locationName, click: setCurrentLocation" class="locationListItem"></li>
         </ul>
     </div>
 
-    <div id="yelpReviewsContainer" class="yelpContainerDiv" data-bind="with: currentLocation">
-        <h3 data-bind="text: locationName"></h3>
-    </div>
-
-    <div id="wikiNewsContainer" class="wikiContainer" data-bind="with: currentLocation">
-        <h3 data-bind="text: locationName"></h3>
-    </div>
-
+    <script>window.jQuery || document.write('<script src="js/lib/jquery-2.1.1.min.js"><\/script>')</script>
     <script src="js/lib/knockout-latest.js"></script>
     <script src="js/app.js"></script>
 </body>
