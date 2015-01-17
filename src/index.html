@@ -46,9 +46,33 @@
             padding: 0 8px;
             width: 100%;
         }
-        h3 {
+        h3,
+        h4 {
             width: 100%;
             text-align: center;
+        }
+        .infoWindowContainer {
+            height: 100%;
+            padding: 3px;
+        }
+        .infoWindowSection {
+            margin: 0;
+            padding: 2px;
+        }
+        .infoWindowSection p {
+            margin: 0;
+        }
+        .hereNow {
+            font-weight: bold;
+            color:green;
+        }
+        .nobodyHereNow {
+            font-weight: bold;
+            color:red;
+        }
+        #pano {
+            width: 480px;
+            height: 270px;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAw-3oUotr4KA1XZQ5xiu_mjh21rNooo9Q"></script>
@@ -65,9 +89,16 @@
     <div id="locationListContainer" class="locationListContainer">
         <h3>Locations I visited on my trip to Nashville</h3>
         <ul data-bind="foreach: allLocations" class="locationList">
-            <li data-bind="text: $data.locationName, click: setCurrentLocation" class="locationListItem"></li>
+            <li data-bind="text: $data.locationName, click: $parent.setCurrentLocation" class="locationListItem"></li>
         </ul>
+        <div class="attributionContainer">
+            <div class="fourSquareAttribution">
+                <p>checkin data provide by foursquare</p>
+            </div>
+        </div>
     </div>
+
+    <div id="pano"></div>
 
     <script>window.jQuery || document.write('<script src="js/lib/jquery-2.1.1.min.js"><\/script>')</script>
     <script src="js/lib/knockout-latest.js"></script>

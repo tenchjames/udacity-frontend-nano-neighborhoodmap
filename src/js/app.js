@@ -21,8 +21,7 @@ var initialLocations = [
     }
 ];
 
-var locations = [];
-var markers = [];
+
 var infoWindows = [];
 var FOUR_SQUARE_URL = 'https://api.foursquare.com/v2/venues/';
 var FOUR_SQUARE_CLIENT_ID = '5HFALNIUYZ31OHEDLIQZWPNQCE2ODS5ZSA2TCD3D0MRNXQVA';
@@ -31,7 +30,7 @@ var FOUR_SQUARE_VERSION = '20150110';
 var FOUR_SQUARE_M = 'foursquare';
 
 /* google maps functions */
-var map;
+var map, sv, panorama, service, searchBox;
 var downtownNashville = new google.maps.LatLng(36.1606405, -86.7762455);
 var initMap = function(focalPoint) {
     var mapOptions = {
@@ -47,53 +46,38 @@ var initMap = function(focalPoint) {
     var autoCompleteOptions = {
         bounds: defaultBounds
     };
-      
+    // create the map
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
+    // create the search service
+    service = new google.maps.places.PlacesService(map);
 
     map.controls[google.maps.ControlPosition.LEFT_TOP].push(document.getElementById('locationListContainer'));
 
+
+    // search box
     var input = document.getElementById('pac-input');
     map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('searchContainer'));
-    var searchBox = new google.maps.places.SearchBox(input, autoCompleteOptions);
 
-    // TODO: MOVE THIS INTO ANOTHER OBJECT...JUST TESTING
-    google.maps.event.addListener(searchBox, 'places_changed', function() {
-        var places = searchBox.getPlaces();
-        if (places.length === 0) {
-            return;
-        }
-        var marker, place;
-        for (var i = 0; i < markers.length; i++) {
-            marker = markers[i];
-            marker.setMap(null);
-        }
+    // create the search box functionality with autocomplete
+    searchBox = new google.maps.places.SearchBox(input, autoCompleteOptions);
 
-        markers = [];
-        var bounds = new google.maps.LatLngBounds();
-        for (i = 0; i < places.length; i++) {
-            place = places[i];
-              var image = {
-                url: place.icon,
-                size: new google.maps.Size(71, 71),
-                origin: new google.maps.Point(0, 0),
-                anchor: new google.maps.Point(17, 34),
-                scaledSize: new google.maps.Size(25, 25)
-              };
+    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(document.getElementById("pano"));
 
-              // Create a marker for each place.
-              marker = new google.maps.Marker({
-                map: map,
-                icon: image,
-                title: place.name,
-                position: place.geometry.location
-              });
+    // create the street view service
+    sv = new google.maps.StreetViewService();
 
-              markers.push(marker);
+    // default pano image
+    var panoramaOptions = {
+            position: downtownNashville,
+            pov: {
+                heading: 90,
+                pitch: 0
+            }
+        };
 
-              bounds.extend(place.geometry.location);
-        }
-        map.fitBounds(bounds);
-    });
+    // add the initial pano image to the pano
+    panorama = new  google.maps.StreetViewPanorama(document.getElementById("pano"), panoramaOptions);
+    map.setStreetView(panorama); 
 
 };
     
@@ -116,23 +100,27 @@ var NeighborhoodLocation = function(loc) {
     this.fourSquareError = ko.observable('');
 
     this.locationNameDiv = ko.computed(function() {
-        return '<div class="locationName"><h4>' + this.locationName() + '</h4></div>';
+        return '<div class="infoWindowSection"><h4>' + this.locationName() + '</h4></div>';
     }, this);
 
     this.fourSquarePrimaryCategoryDiv = ko.computed(function() {
-        return '<div class="primaryCategoryContainer"><p>Category: <span class="primaryCategory">' + this.fourSquarePrimaryCategory() + '</span></p></div>';
+        return '<div class="infoWindowSection"><p>Category: <span class="primaryCategory">' + this.fourSquarePrimaryCategory() + '</span></p></div>';
     }, this);
 
     this.vicinityDiv = ko.computed(function() {
-        return  '<div class="locationVicinity"><p>Address: <span class="address">' + this.vicinity() + '</span></p></div>';
+        return  '<div class="infoWindowSection"><p>Address: <span class="address">' + this.vicinity() + '</span></p></div>';
     }, this);
 
     this.fourSquareHereNowDiv = ko.computed(function() {
-        return '<div class="hereNowContainer"><p>Here now: <span class="hereNow">' + this.fourSquareHereNowSummary() + '</span></p></div>';
+        var hereClass = 'hereNow';
+        if (this.fourSquareHereNowSummary() === 'Nobody here') {
+            hereClass = 'nobodyHereNow';
+        }
+        return '<div class="infoWindowSection"><p>Here now: <span class="' + hereClass + '">' + this.fourSquareHereNowSummary() + '</span></p></div>';
     },this);
 
     this.fourSquareCheckInCountDiv = ko.computed(function() {
-        return '<div class="checkInCountContainer"><p>FourSquare checkins: <span class="haveCheckedIn">' + this.fourSquareCheckInCount() + '</span></p></div>';
+        return '<div class="infoWindowSection"><p>Foursquare checkins: <span class="haveCheckedIn">' + this.fourSquareCheckInCount() + '</span></p></div>';
     }, this);
 
 
@@ -143,19 +131,22 @@ var NeighborhoodLocation = function(loc) {
             return '<div class="infoWindowContainer">' + this.locationNameDiv() + this.fourSquarePrimaryCategoryDiv() + this.vicinityDiv() + this.fourSquareHereNowDiv() + this.fourSquareCheckInCountDiv() + '</div>';
         }
     }, this);
-
-
-    this.searchForPlaceMarker(loc);
+    
 };
 
 NeighborhoodLocation.prototype = {
+    init: function() {
+        var location = {locationName: this.locationName(), locationTypes: this.locationTypes()};
+        this.searchForPlaceMarker(location);
+    },
     createMapMarker: function(placesData) {
         var self = this;
-        if (placesData[0].vicinity) {
+        if (placesData[0].vicinity !== undefined) {
             self.vicinity(placesData[0].vicinity.split(',')[0]);
         }
         this.latitude = placesData[0].geometry.location.lat();
         this.longitude = placesData[0].geometry.location.lng();
+        this.geometryLocation = placesData[0].geometry.location;
         self.marker = new google.maps.Marker({
             map: map,
             position: placesData[0].geometry.location,
@@ -174,7 +165,6 @@ NeighborhoodLocation.prototype = {
         self.setFourSquareInfo();
     },
     searchForPlaceMarker: function(location) {
-        var service = new google.maps.places.PlacesService(map);
         var request = {};
         request.location = downtownNashville;
         request.radius = 1200;
@@ -192,8 +182,18 @@ NeighborhoodLocation.prototype = {
     },
     addPlaceCallback: function(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            this.createMapMarker(results);
+            this.addPlace(results);
         }        
+    },
+    addPlace: function(placeData) {
+        // use google data if available
+        if (placeData.name !== undefined) {
+            this.locationName = placeData.name;
+        }
+        if (placeData.types !== undefined && placeData.types > 0) {
+            this.locationTypes = placeData.types;
+        }
+        this.createMapMarker(placeData);       
     },
     getFourSquareInfo: function() {
         return $.ajax({
@@ -285,7 +285,7 @@ NeighborhoodLocation.prototype = {
 
 var ViewModel = function() {
     var self = this;
-    self.allLocations = ko.observableArray(locations);
+    self.allLocations = ko.observableArray([]);
 
     self.subscribeToMapClick = function(location) {
         location.markerOpen.subscribe(function(markerOpen) {
@@ -304,19 +304,39 @@ var ViewModel = function() {
         });
     };
 
-
     for (var i = 0; i < initialLocations.length; i += 1) {
-        self.allLocations().push(new NeighborhoodLocation(initialLocations[i]));
+        var currentLocation = new NeighborhoodLocation(initialLocations[i]);
+        currentLocation.init();
+        self.allLocations.push(currentLocation);
         self.subscribeToMapClick(self.allLocations()[i]);
         self.subscribeToFourSquareUpdate(self.allLocations()[i]);
     }
     self.currentLocation = ko.observable();
+
     self.setCurrentLocation = function(location) {
         self.closeInfoWindows();
         self.currentLocation(location);
         if (location.infoWindow) {
             location.infoWindow.open(map,location.marker);
             location.infoWindow.setContent(self.currentLocation().infoWindowDiv());              
+        }
+        if (location.geometryLocation) {
+            sv.getPanoramaByLocation(location.geometryLocation, 50, self.processSVData.bind(self));   
+        }
+        
+    };
+
+    self.processSVData = function(data, status) {
+        if (status === google.maps.StreetViewStatus.OK) {
+            panorama.setPano(data.location.pano);
+            var heading = google.maps.geometry.spherical.computeHeading(data.location.latLng, self.currentLocation().geometryLocation);
+            panorama.setPov({
+                heading: heading,
+                pitch: 0
+            });
+            panorama.setVisible(true);
+        } else {
+            $('#pano').html('Error getting pano image');
         }
     };
 
@@ -327,10 +347,30 @@ var ViewModel = function() {
         }
     };
 
+    self.addPlace = function(location) {
+        self.allLocations.push(location);
+    };
+
+
+    google.maps.event.addListener(searchBox, 'places_changed', function() {
+        var places = searchBox.getPlaces();
+        if (places.length === 0) {
+            return;
+        }
+        var newLocation = new NeighborhoodLocation({locationName: places[0].name, locationTypes: places[0].types});
+        newLocation.init();
+        self.allLocations.push(newLocation);
+        self.subscribeToMapClick(newLocation);
+        self.subscribeToFourSquareUpdate(newLocation);
+                     
+    }); 
     self.setCurrentLocation(self.allLocations()[0]);
 
 };
 
 google.maps.event.addDomListener(window, 'load', initMap(downtownNashville));
 
-ko.applyBindings(ViewModel);
+setTimeout(function() {
+    ko.applyBindings(new ViewModel());
+}, 2000);
+
