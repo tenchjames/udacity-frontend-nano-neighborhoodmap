@@ -49,5 +49,10 @@ this readme file
 ### instructions
 both source and dist files are located at https://github.com/tenchjames/udacity-frontend-nano-neighborhoodmap.git
 
-The working site is hosted at tenchjames.github.io/map
+The working site is hosted at http://tenchjames.github.io/map/
+
+### sources used
+Google Maps API, Foursquare API, stack overflow, w3c, knockoutjs tutorial
+
+
 
