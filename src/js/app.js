@@ -17,7 +17,7 @@ var initialLocations = [
     },
     {
         locationTypes: ["food", "bar", "restaurant"],
-        locationName: "Rock Bottom Nashville"        
+        locationName: "Rock Bottom Nashville"
     }
 ];
 
@@ -32,16 +32,14 @@ var FOUR_SQUARE_M = 'foursquare';
 var map, sv, panorama, service, searchBox;
 /* the location we are touring, for this may it's Nashville TN */
 var downtownNashville = new google.maps.LatLng(36.1606405, -86.7762455);
-var initMap = function(focalPoint) {
+var initMap = function (focalPoint) {
     var mapOptions = {
         center: focalPoint,
         zoom: 16,
         disableDefaultUI: true
     };
     /* set small area around Nashville */
-    var defaultBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(35.1606405, -87.7762455),
-        new google.maps.LatLng(37.1606405, -85.7762455));
+    var defaultBounds = new google.maps.LatLngBounds(new google.maps.LatLng(35.1606405, -87.7762455), new google.maps.LatLng(37.1606405, -85.7762455));
 
     /* Keep search preference to this area */
     var autoCompleteOptions = {
@@ -79,16 +77,14 @@ var initMap = function(focalPoint) {
         };
 
     /* Adds the panorama object to the page */
-    panorama = new  google.maps.StreetViewPanorama(document.getElementById("pano"), panoramaOptions);
-    map.setStreetView(panorama); 
+    panorama = new google.maps.StreetViewPanorama(document.getElementById("pano"), panoramaOptions);
+    map.setStreetView(panorama);
 };
-    
 
 /*
  * This is the primary model opbject we will use for neighborhood locations
  */
-var NeighborhoodLocation = function(loc) {
-    var self = this;
+var NeighborhoodLocation = function (loc) {
     this.markerOpen = ko.observable(false);
     this.receivedFourSquareUpdate = ko.observable(false);
     this.locationTypes = ko.observableArray(loc.locationTypes);
@@ -106,57 +102,54 @@ var NeighborhoodLocation = function(loc) {
     this.fourSquareError = ko.observable('');
 
     /* InfoWiindo divs that are built with ko.computed values */
-    this.locationNameDiv = ko.computed(function() {
+    this.locationNameDiv = ko.computed(function () {
         if (!this.locationName() || this.locationName() === "") {
             return '<div class="infoWindowSection"><h4>Getting Foursquare data...</h4></div>';
-        } else {
-            return '<div class="infoWindowSection"><h4>' + this.locationName() + '</h4></div>';
-        }     
+        }
+        return '<div class="infoWindowSection"><h4>' + this.locationName() + '</h4></div>';
     }, this);
 
-    this.fourSquarePrimaryCategoryDiv = ko.computed(function() {
+    this.fourSquarePrimaryCategoryDiv = ko.computed(function () {
         return '<div class="infoWindowSection"><p>Category: <span class="primaryCategory">' + this.fourSquarePrimaryCategory() + '</span></p></div>';
     }, this);
 
-    this.vicinityDiv = ko.computed(function() {
-        return  '<div class="infoWindowSection"><p>Address: <span class="address">' + this.vicinity() + '</span></p></div>';
+    this.vicinityDiv = ko.computed(function () {
+        return '<div class="infoWindowSection"><p>Address: <span class="address">' + this.vicinity() + '</span></p></div>';
     }, this);
 
-    this.fourSquareHereNowDiv = ko.computed(function() {
+    this.fourSquareHereNowDiv = ko.computed(function () {
         var hereClass = 'hereNow';
         if (this.fourSquareHereNowSummary() === 'Nobody here') {
             hereClass = 'nobodyHereNow';
         }
         return '<div class="infoWindowSection"><p>Here now: <span class="' + hereClass + '">' + this.fourSquareHereNowSummary() + '</span></p></div>';
-    },this);
+    }, this);
 
-    this.fourSquareCheckInCountDiv = ko.computed(function() {
+    this.fourSquareCheckInCountDiv = ko.computed(function () {
         return '<div class="infoWindowSection"><p>Foursquare checkins: <span class="haveCheckedIn">' + this.fourSquareCheckInCount() + '</span></p></div>';
     }, this);
 
 
-    this.infoWindowDiv = ko.computed(function(){
+    this.infoWindowDiv = ko.computed(function () {
         if (this.fourSquareError().length > 0) {
             return '<div class="infoWindowContainer">' + this.locationNameDiv() + this.vicinityDiv() + this.fourSquareError() + '</div>';
-        } else {
-            return '<div class="infoWindowContainer">' + this.locationNameDiv() + this.fourSquarePrimaryCategoryDiv() + this.vicinityDiv() + this.fourSquareHereNowDiv() + this.fourSquareCheckInCountDiv() + '</div>';
         }
+        return '<div class="infoWindowContainer">' + this.locationNameDiv() + this.fourSquarePrimaryCategoryDiv() + this.vicinityDiv() + this.fourSquareHereNowDiv() + this.fourSquareCheckInCountDiv() + '</div>';
     }, this);
-    
 };
 /* functions that work on the object
  * most of the object is built up by accessing
  * Google Places API and/or FourSquare API
  */
 NeighborhoodLocation.prototype = {
-    init: function() {
+    init: function () {
         var location = {locationName: this.locationName(), locationTypes: this.locationTypes()};
         this.searchForPlaceMarker(location);
         this.infoWindow = new google.maps.InfoWindow({
             content: this.infoWindowDiv()
         });
     },
-    createMapMarker: function(placesData) {
+    createMapMarker: function (placesData) {
         var self = this;
         // if google has vicinity, use the address to get best foursquare match later
         if (placesData[0].vicinity !== undefined) {
@@ -165,30 +158,30 @@ NeighborhoodLocation.prototype = {
         this.latitude = placesData[0].geometry.location.lat();
         this.longitude = placesData[0].geometry.location.lng();
         this.geometryLocation = placesData[0].geometry.location;
-   
+
         self.marker = new google.maps.Marker({
             map: map,
             position: placesData[0].geometry.location,
-            title: placesData[0].name,
+            title: placesData[0].name
         });
         // use custom icons if available
         if (placesData[0].icon !== undefined) {
             var icon = new google.maps.MarkerImage(placesData[0].icon, null, null, null, new google.maps.Size(25, 25));
             self.marker.setIcon(icon);
         }
-        google.maps.event.addListener(self.marker, 'click', function() {
+        google.maps.event.addListener(self.marker, 'click', function () {
             self.markerOpen(!self.markerOpen()); // will subsribe to the status to fire events later
         });
 
         // if someone was waiting to open the infoWindow, open it now
         if (self.markerOpen()) {
-            self.infoWindow.open(map,self.marker);
+            self.infoWindow.open(map, self.marker);
         }
 
         // use info from object and google places to get Foursquare info
         self.setFourSquareInfo();
     },
-    searchForPlaceMarker: function(location) {
+    searchForPlaceMarker: function (location) {
         var request = {};
         request.location = downtownNashville;
         request.radius = 1200; // limit tour to local area
@@ -201,17 +194,17 @@ NeighborhoodLocation.prototype = {
         }
         if (location.locationTypes && location.locationTypes.length > 0) {
             request.type = location.locationTypes;
-        } 
-        service.nearbySearch(request, this.addPlaceCallback.bind(this));      
+        }
+        service.nearbySearch(request, this.addPlaceCallback.bind(this));
     },
-    addPlaceCallback: function(results, status) {
+    addPlaceCallback: function (results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             this.addPlace(results);
         } else {
             this.locationName = "Error getting google places data, please check your internet connection and try again";
         }
     },
-    addPlace: function(placeData) {
+    addPlace: function (placeData) {
         // use google data if available
         if (placeData.name !== undefined) {
             this.locationName = placeData.name;
@@ -219,9 +212,9 @@ NeighborhoodLocation.prototype = {
         if (placeData.types !== undefined && placeData.types > 0) {
             this.locationTypes = placeData.types;
         }
-        this.createMapMarker(placeData);       
+        this.createMapMarker(placeData);
     },
-    getFourSquareInfo: function() {
+    getFourSquareInfo: function () {
         // returns a promise so we can continue async
         return $.ajax({
             url: FOUR_SQUARE_URL + 'search',
@@ -239,9 +232,9 @@ NeighborhoodLocation.prototype = {
             }
         });
     },
-    setFourSquareInfo: function() {
+    setFourSquareInfo: function () {
         var self = this;
-        self.getFourSquareInfo().done(function(data) {
+        self.getFourSquareInfo().done(function (data) {
             var venues = data.response.venues;
             // variables used in matching algorithm
             // default to 0 if we cant get a better match
@@ -256,7 +249,7 @@ NeighborhoodLocation.prototype = {
             if (venues.length > 1) {
                 for (i = 0; i < venues.length; i += 1) {
                     if (venues[i].location !== undefined && venues[i].location.address !== undefined) {
-                        fSquareAddress = venues[i].location.address.split('');  
+                        fSquareAddress = venues[i].location.address.split('');
                     } else {
                         fSquareAddress = '';
                     }
@@ -264,9 +257,8 @@ NeighborhoodLocation.prototype = {
                     for (j = 0; j < googleVicinity.length && j < fSquareAddress.length; j += 1) {
                         if (googleVicinity[j] !== fSquareAddress[j]) {
                             break;
-                        } else {
-                            currentMatch += 1;
                         }
+                        currentMatch += 1;
                     }
                     if (currentMatch > maxAddrMatch) {
                         idx = i;
@@ -276,16 +268,16 @@ NeighborhoodLocation.prototype = {
             }
             // Use Foursquare data if available
             if (venues[idx].hereNow.summary !== undefined) {
-                self.fourSquareHereNowSummary(venues[idx].hereNow.summary);    
+                self.fourSquareHereNowSummary(venues[idx].hereNow.summary);
             } else {
                 self.fourSquareHereNowSummary('Data unavailable from Foursquare');
             }
 
             if (venues[idx].stats.checkinsCount !== undefined) {
-                self.fourSquareCheckInCount(venues[idx].stats.checkinsCount);   
+                self.fourSquareCheckInCount(venues[idx].stats.checkinsCount);
             } else {
                 self.fourSquareCheckInCount('Data unavailable from Foursquare');
-            }            
+            }
 
             if (venues[idx].categories !== undefined && venues[idx].categories.length > 0) {
                 // find primary category
@@ -295,14 +287,14 @@ NeighborhoodLocation.prototype = {
                         self.fourSquarePrimaryCategory(venues[idx].categories[i].name);
                         break;
                     }
-                }  
+                }
             } else {
                 self.fourSquarePrimaryCategory('Data unavailable from Foursquare');
             }
 
             // so subscribers know to perform updates
             self.receivedFourSquareUpdate(true);
-        }).fail(function(jqXHR, textStatus) {
+        }).fail(function () {
             self.fourSquareError('<span class="error">' + 'Error getting data from Foursquare, please be sure you are connected to the internet' + '</span>');
             self.fourSquareCheckInCount('');
             self.fourSquarePrimaryCategory('');
@@ -313,13 +305,14 @@ NeighborhoodLocation.prototype = {
 };
 
 
-var ViewModel = function() {
-    var self = this;
+var ViewModel = function () {
+    var self = this,
+        i;
     self.allLocations = ko.observableArray([]);
 
     /* when a marker is clicked, update the current location in the ViewModel */
-    self.subscribeToMapClick = function(location) {
-        location.markerOpen.subscribe(function(markerOpen) {
+    self.subscribeToMapClick = function (location) {
+        location.markerOpen.subscribe(function (markerOpen) {
             if (markerOpen) {
                 self.setCurrentLocation(location);
             } else {
@@ -329,27 +322,27 @@ var ViewModel = function() {
     };
 
     /* Allows the InfoWindow Div to get updates when Foursquare data is returned */
-    self.subscribeToFourSquareUpdate = function(location) {
-        location.receivedFourSquareUpdate.subscribe(function(receivedFourSquareUpdate) {
+    self.subscribeToFourSquareUpdate = function (location) {
+        location.receivedFourSquareUpdate.subscribe(function (receivedFourSquareUpdate) {
             if (receivedFourSquareUpdate && location.infoWindow) {
                 location.infoWindow.setContent(location.infoWindowDiv());
                 // this also means we have updated geo data, update the pano image
                 if (location.markerOpen()) {
-                    self.getPanoramaImage();    
-                }      
-            }            
+                    self.getPanoramaImage();
+                }
+            }
         });
     };
 
-    self.deletePlace = function(location) {
+    self.deletePlace = function (location) {
         if (location.marker !== undefined) {
-            location.marker.setMap(null);    
-        }      
+            location.marker.setMap(null);
+        }
         self.allLocations.remove(location);
     };
 
     /* pushes new location and adds subscriptions above */
-    self.addPlace = function(location) {
+    self.addPlace = function (location) {
         self.allLocations.push(location);
         self.subscribeToMapClick(location);
         self.subscribeToFourSquareUpdate(location);
@@ -357,16 +350,16 @@ var ViewModel = function() {
     };
 
     /* We only keep one window open at a time */
-    self.closeInfoWindows = function() {
+    self.closeInfoWindows = function () {
         var nInfoWindows = self.allLocations().length;
-        for (var i = 0; i < nInfoWindows; i += 1) {
+        for (i = 0; i < nInfoWindows; i += 1) {
             if (self.allLocations()[i].infoWindow && self.allLocations()[i] !== self.currentLocation()) {
                 self.allLocations()[i].markerOpen(false); // will cause individual windows subscribed to close infoWindows
-            }        
+            }
         }
     };
 
-    self.closeInfoWindow = function(location) {
+    self.closeInfoWindow = function (location) {
         if (location.infoWindow && !location.markerOpen()) {
             location.infoWindow.close();
         }
@@ -374,30 +367,30 @@ var ViewModel = function() {
 
     self.currentLocation = ko.observable();
 
-    self.setCurrentLocation = function(location) {      
+    self.setCurrentLocation = function (location) {
         self.currentLocation(location);
         self.closeInfoWindows();
         /* test to make sure this has been initialized yet from the ajax call*/
-        if (location.infoWindow !== undefined && location.marker !== undefined) {    
-            location.infoWindow.setContent(self.currentLocation().infoWindowDiv());   
-            location.infoWindow.open(map,location.marker);   
+        if (location.infoWindow !== undefined && location.marker !== undefined) {
+            location.infoWindow.setContent(self.currentLocation().infoWindowDiv());
+            location.infoWindow.open(map, location.marker);
         }
         /* test to make sure this has been initialized yet from the ajax call*/
         if (location.geometryLocation) {
-           self.getPanoramaImage();
-        }       
+            self.getPanoramaImage();
+        }
     };
 
-    self.toggleInfoWindow = function(location) {
+    self.toggleInfoWindow = function (location) {
         location.markerOpen(!location.markerOpen());
     };
 
-    self.getPanoramaImage = function() {
+    self.getPanoramaImage = function () {
         sv.getPanoramaByLocation(self.currentLocation().geometryLocation, self.currentLocation().panoRadius, self.processSVData);
     };
 
     /* searches for the closest panoramic image available */
-    self.processSVData = function(data, status) {
+    self.processSVData = function (data, status) {
         if (status === google.maps.StreetViewStatus.OK) {
             $('#panoError').removeClass('unhide');
             panorama.setPano(data.location.pano);
@@ -416,31 +409,31 @@ var ViewModel = function() {
         }
     };
 
-    for (var i = 0; i < initialLocations.length; i += 1) {
-        var currentLocation = new NeighborhoodLocation(initialLocations[i]);
+    var currentLocation;
+    for (i = 0; i < initialLocations.length; i += 1) {
+        currentLocation = new NeighborhoodLocation(initialLocations[i]);
         currentLocation.init();
         self.allLocations.push(currentLocation);
         self.subscribeToMapClick(currentLocation);
         self.subscribeToFourSquareUpdate(currentLocation);
     }
 
-    google.maps.event.addListener(searchBox, 'places_changed', function() {
+    google.maps.event.addListener(searchBox, 'places_changed', function () {
         var places = searchBox.getPlaces();
         if (places.length === 0) {
             return;
         }
         var newLocation = new NeighborhoodLocation({locationName: places[0].name, locationTypes: places[0].types});
         newLocation.init();
-        self.addPlace(newLocation);        
-    }); 
+        self.addPlace(newLocation);
+    });
     self.setCurrentLocation(self.allLocations()[0]);
-
 };
 
 google.maps.event.addDomListener(window, 'load', initMap(downtownNashville));
 
 /* delay this to allow time for google maps to add divs to the map */
-setTimeout(function() {
+setTimeout(function () {
     ko.applyBindings(new ViewModel());
 }, 1000);
 
