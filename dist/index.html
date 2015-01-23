@@ -13,7 +13,7 @@
         }
         .locationListContainer {
             background-color: white;
-            width: 300px;
+            width: 30%;
             margin: 10px;
             border: 1px solid gray;
             border-radius: 10px;
@@ -94,4 +94,26 @@
         }
         .deletelink {
             text-decoration: none;
+        }
+        /** Mobile **/
+        @media only screen and (max-width: 767px), only screen and (max-device-width: 767px) {
+            #pano {
+                visibility: hidden;
+            }
+        }
+
+        /** Tablet **/
+        @media only screen and (min-width : 768px) and (max-width : 1024px), {
+            #pano {
+                visibility: visible;
+                width: 25%
+            }
+        }
+
+        /** Tablet (landscape) **/
+        @media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+            #pano {
+                visibility: visible;
+                width: 25%
+            }
         }</style><script src="https://maps.googleapis.com/maps/api/js?libraries=places&amp;key=AIzaSyAw-3oUotr4KA1XZQ5xiu_mjh21rNooo9Q"></script><title>Neighborhood Map</title></head><body><div id="map"></div><div id="searchContainer" class="searchContainer"><form class="searchBoxForm" role="search" onsubmit="return false"><input id="pac-input" class="autoSearch" type="text" placeholder="Search"></form></div><div id="locationListContainer" class="locationListContainer"><h3>Nashville Tour</h3><ul data-bind="foreach: allLocations" class="locationList"><li data-bind="click: $parent.toggleInfoWindow" class="locationListItem"><span data-bind="text: $data.locationName"></span> <span class="delete" data-bind="visible: $index() > 4"><a href="#" class="deletelink" data-bind="click: $index() < 5 ? null : $parent.deletePlace">delete</a></span></li></ul><div class="attributionContainer"><div class="fourSquareAttribution"><p class="text-centered">checkin data provide by foursquare</p></div></div></div><div id="pano" class="pano"></div><div id="panoError" class="panoError hidden"><span>Error getting image from google StreeView</span></div><script>window.jQuery || document.write('<script src="js/lib/jquery-2.1.1.min.js"><\/script>')</script><script src="js/lib/knockout-latest.js"></script><script src="js/app.min.js"></script></body></html>

@@ -21,7 +21,7 @@
         }
         .locationListContainer {
             background-color: white;
-            width: 300px;
+            width: 30%;
             margin: 10px;
             border: 1px solid gray;
             border-radius: 10px;
@@ -102,6 +102,28 @@
         }
         .deletelink {
             text-decoration: none;
+        }
+        /** Mobile **/
+        @media only screen and (max-width: 767px), only screen and (max-device-width: 767px) {
+            #pano {
+                visibility: hidden;
+            }
+        }
+
+        /** Tablet **/
+        @media only screen and (min-width : 768px) and (max-width : 1024px), {
+            #pano {
+                visibility: visible;
+                width: 25%
+            }
+        }
+
+        /** Tablet (landscape) **/
+        @media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+            #pano {
+                visibility: visible;
+                width: 25%
+            }
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?libraries=places&amp;key=AIzaSyAw-3oUotr4KA1XZQ5xiu_mjh21rNooo9Q"></script>
